@@ -14,7 +14,6 @@ include { SPLIT_DATA_CONFIG_UNIFIED_WF        } from '../subworkflows/local/spli
 include { SPLIT_DATA_WF                       } from '../subworkflows/local/split_data'
 include { TRANSFORM_DATA_WF                   } from '../subworkflows/local/transform_data'
 include { TUNE_WF                             } from '../subworkflows/local/tune'
-include { EVALUATION_WF                       } from '../subworkflows/local/evaluation'
 include { STIMULUS_ENCODE                     } from '../modules/local/stimulus/encode'
 
 //
@@ -104,27 +103,32 @@ workflow DEEPMODELOPTIM {
     // check model
     // ==============================================================================
 
-    // pre-step to check everything is fine
-    // to do so we only run the first element of the sorted channel, as we don't need
-    // to check on each transformed data
-    // we sort the channel so that we always get the same input, as the default order
-    // of the channel depends on which process finishes first (run in parallel)
-    ch_check_input_data = ch_transformed_data.toSortedList().flatten().buffer(size:2).first()
+    // ==============================================================================
+    // check model
+    // ==============================================================================
 
-    CHECK_MODEL_WF (
-        ch_check_input_data,
-        ch_model,
-        ch_model_config,
-        ch_initial_weights
-    )
+    if (!params.skip_check_model) {
+        // pre-step to check everything is fine
+        // to do so we only run the first element of the sorted channel, as we don't need
+        // to check on each transformed data
+        // we sort the channel so that we always get the same input, as the default order
+        // of the channel depends on which process finishes first (run in parallel)
+        ch_check_input_data = ch_transformed_data.toSortedList().flatten().buffer(size:2).first()
+
+        CHECK_MODEL_WF (
+            ch_check_input_data,
+            ch_model,
+            ch_model_config,
+            ch_initial_weights
+        )
+        // Create dependancy WF dependency to ensure TUNE_WF runs after CHECK_MODEL_WF finished
+        ch_transformed_data = CHECK_MODEL_WF.out.concat(ch_transformed_data)
+            .filter{it}   // remove the empty element from the check model
+    }
 
     // ==============================================================================
     // tune model
     // ==============================================================================
-
-    // Create dependancy WF dependency to ensure TUNE_WF runs after CHECK_MODEL_WF finished
-    ch_transformed_data = CHECK_MODEL_WF.out.concat(ch_transformed_data)
-        .filter{it}   // remove the empty element from the check model
 
     TUNE_WF(
         ch_transformed_data,
@@ -139,16 +143,12 @@ workflow DEEPMODELOPTIM {
     // Evaluation
     // ==============================================================================
 
-    STIMULUS_ENCODE(
-        prediction_data,
-        ch_yaml_encode_config
-    )
-    prediction_data = STIMULUS_ENCODE.out.encoded
-    EVALUATION_WF(
-        TUNE_WF.out.model_tmp,
-        prediction_data
-    )
-
+    if (!params.skip_encoding) {
+        STIMULUS_ENCODE(
+            prediction_data,
+            ch_yaml_encode_config
+        )
+    }
 
     // Software versions collation remains as comments
     softwareVersionsToYAML(ch_versions)

@@ -30,6 +30,26 @@ transforms:
               remove_target_field: "target_gene"
               remove_target_values: [["non-targeting"]]
 
+  - transformation_name: "log_and_hvg_1000"
+    columns:
+      - column_name: "X"
+        transformations:
+          - name: "ScanpyTransform"
+            params:
+              func: "pp.log1p"
+          - name: "ScanpyTransform"
+            params:
+              func: "pp.highly_variable_genes"
+              n_top_genes: 1000
+              subset: True
+          - name: "AveragePca"
+            params:
+              n_components: 20
+              field: "target_gene"
+              store_field: "X_avg_pca"
+              remove_target_field: "target_gene"
+              remove_target_values: [["non-targeting"]]
+
 split:
   - split_method: "TargetGeneSplitter"
     params:

@@ -70,12 +70,16 @@ workflow TRANSFORM_DATA_WF {
 
 
     // run stimulus encode
-    STIMULUS_ENCODE(
-        ch_encode_input.data,
-        ch_encode_input.config
-    )
-    ch_encoded_data = STIMULUS_ENCODE.out.encoded
-    ch_versions = ch_versions.mix(STIMULUS_ENCODE.out.versions)
+    if (!params.skip_encoding) {
+        STIMULUS_ENCODE(
+            ch_encode_input.data,
+            ch_encode_input.config
+        )
+        ch_encoded_data = STIMULUS_ENCODE.out.encoded
+        ch_versions = ch_versions.mix(STIMULUS_ENCODE.out.versions)
+    } else {
+        ch_encoded_data = ch_transformed_data
+    }
 
     emit:
     transformed_data = ch_encoded_data

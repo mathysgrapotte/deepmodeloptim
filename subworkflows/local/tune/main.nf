@@ -5,7 +5,6 @@
 */
 
 include { STIMULUS_TUNE              } from '../../../modules/local/stimulus/tune'
-include { CUSTOM_MODIFY_MODEL_CONFIG } from '../../../modules/local/custom/modify_model_config'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,14 +27,13 @@ workflow TUNE_WF {
     ch_versions = Channel.empty()
 
 
-    // Modify the model config file to include the number of trials
-    // This allows us to run multiple trials numbers with the same model
-    CUSTOM_MODIFY_MODEL_CONFIG(
-        ch_model_config.collect(),
-        tune_trials_range
-    )
-    ch_versions = ch_versions.mix(CUSTOM_MODIFY_MODEL_CONFIG.out.versions)
-    ch_model_config = CUSTOM_MODIFY_MODEL_CONFIG.out.config
+    // ch_model_config = CUSTOM_MODIFY_MODEL_CONFIG.out.config
+    // We assume the model config already contains what we need or is just passed through.
+    // If n_trials needs to be injected, it should be done upstream or handled by STIMULUS_TUNE if supported or acceptable to be static.
+    // Based on requirements, we are removing the custom modification step.
+    
+    // Pass original config through
+    // ch_model_config is already a channel of paths from input
 
     // ch_input = ch_split_data
     //     .combine(ch_config_transform, by: [])
@@ -54,11 +52,13 @@ workflow TUNE_WF {
     // ch_transformed_data.view()
     ch_tune_input = ch_transformed_data
         .combine(ch_model.map{it[1]})
-        .combine(ch_model_config)
+        .combine(ch_model_config.map{it[1]})
         .combine(ch_initial_weights)    // when initial_weights is empty .map{it[1]} will return [], and not properly combined
         .combine(tune_replicates)
-        .multiMap { meta, data, model, meta_model_config, model_config, meta_weights, initial_weights, n_replicate ->
-            def meta_new = meta + [replicate: n_replicate] + [n_trials: meta_model_config.n_trials]
+        .multiMap { meta, data, model, model_config, meta_weights, initial_weights, n_replicate ->
+            // Assuming we don't need n_trials in meta anymore or get it differently.
+            // If it was only added by CUSTOM_MODIFY_MODEL_CONFIG, we remove it from here.
+            def meta_new = meta + [replicate: n_replicate] 
             data:
                 [meta_new, data]
             model:
