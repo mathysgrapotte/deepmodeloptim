@@ -4,8 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { STIMULUS_TRANSFORM_CSV } from '../../../modules/local/stimulus/transform_csv'
-include { ENCODE_CSV } from '../../../modules/local/stimulus/encode'
+include { STIMULUS_TRANSFORM } from '../../../modules/local/stimulus/transform'
+include { STIMULUS_ENCODE } from '../../../modules/local/stimulus/encode'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -13,7 +13,7 @@ include { ENCODE_CSV } from '../../../modules/local/stimulus/encode'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-workflow TRANSFORM_CSV_WF {
+workflow TRANSFORM_DATA_WF {
 
     take:
     ch_split_data
@@ -48,11 +48,11 @@ workflow TRANSFORM_CSV_WF {
         }
 
     // run stimulus transform
-    STIMULUS_TRANSFORM_CSV(
+    STIMULUS_TRANSFORM(
         ch_input.data,
         ch_input.config
     )
-    ch_transformed_data = STIMULUS_TRANSFORM_CSV.out.transformed_data
+    ch_transformed_data = STIMULUS_TRANSFORM.out.transformed_data
 
     ch_encode_input = ch_transformed_data
         .combine(ch_config_encode, by: [])
@@ -70,12 +70,12 @@ workflow TRANSFORM_CSV_WF {
 
 
     // run stimulus encode
-    ENCODE_CSV(
+    STIMULUS_ENCODE(
         ch_encode_input.data,
         ch_encode_input.config
     )
-    ch_encoded_data = ENCODE_CSV.out.encoded
-    ch_versions = ch_versions.mix(ENCODE_CSV.out.versions)
+    ch_encoded_data = STIMULUS_ENCODE.out.encoded
+    ch_versions = ch_versions.mix(STIMULUS_ENCODE.out.versions)
 
     emit:
     transformed_data = ch_encoded_data

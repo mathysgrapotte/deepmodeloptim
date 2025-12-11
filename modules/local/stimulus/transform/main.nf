@@ -1,5 +1,4 @@
-
-process STIMULUS_TRANSFORM_CSV {
+process STIMULUS_TRANSFORM {
 
     tag "${meta.id}-${meta2.id}"
     label 'process_medium'
@@ -11,14 +10,14 @@ process STIMULUS_TRANSFORM_CSV {
     tuple val(meta2), path(config)
 
     output:
-    tuple val(meta), path("${prefix}"), emit: transformed_data
+    tuple val(meta), path("${prefix}*"), emit: transformed_data
     path "versions.yml"          , emit: versions
 
     script:
     prefix = task.ext.prefix ?: "${meta.id}-${meta2.id}-trans"
     """
-    stimulus transform-csv \
-        -c ${data} \
+    stimulus transform \
+        -d ${data} \
         -y ${config} \
         -o ${prefix}
 
@@ -31,7 +30,7 @@ process STIMULUS_TRANSFORM_CSV {
     stub:
     prefix = task.ext.prefix ?: "${meta.id}-${meta2.id}-trans"
     """
-    touch ${prefix}.csv
+    touch ${prefix}.h5ad
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

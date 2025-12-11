@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { STIMULUS_SPLIT_DATA } from '../../../modules/local/stimulus/split_csv'
+include { STIMULUS_SPLIT } from '../../../modules/local/stimulus/split'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -12,7 +12,7 @@ include { STIMULUS_SPLIT_DATA } from '../../../modules/local/stimulus/split_csv'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-workflow SPLIT_CSV_WF {
+workflow SPLIT_DATA_WF {
 
     take:
     ch_data
@@ -23,7 +23,7 @@ workflow SPLIT_CSV_WF {
     ch_versions = Channel.empty()
 
     // ==============================================================================
-    // Split csv data using stimulus
+    // Split data using stimulus
     // ==============================================================================
 
     // combine each data with each split config
@@ -38,12 +38,12 @@ workflow SPLIT_CSV_WF {
         }
 
     // run stimulus split
-    STIMULUS_SPLIT_DATA(
+    STIMULUS_SPLIT(
         ch_input.data,
         ch_input.config
     )
-    ch_split_data = STIMULUS_SPLIT_DATA.out.csv_with_split
-    ch_versions = ch_versions.mix(STIMULUS_SPLIT_DATA.out.versions)
+    ch_split_data = STIMULUS_SPLIT.out.data_with_split
+    ch_versions = ch_versions.mix(STIMULUS_SPLIT.out.versions)
 
     emit:
     split_data = ch_split_data
