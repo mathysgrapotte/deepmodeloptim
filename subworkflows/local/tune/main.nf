@@ -64,6 +64,22 @@ workflow TUNE_WF {
             model:
                 [meta_new, model, model_config, initial_weights]
         }
+    // Print optuna-dashboard command if storage was configured
+    if (params.optuna_storage) {
+        log.info ""
+        log.info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log.info "  Optuna Dashboard - Real-time Visualization"
+        log.info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log.info "  To monitor tuning progress in real-time, run in a separate terminal:"
+        log.info ""
+        log.info "    optuna-dashboard ${params.optuna_storage}"
+        log.info ""
+        log.info "  Then open http://127.0.0.1:8080 in your browser."
+        log.info "  Study name: ${params.optuna_study_name ?: 'auto-generated'}"
+        log.info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log.info ""
+    }
+
     // run stimulus tune
     STIMULUS_TUNE(
         ch_tune_input.data,

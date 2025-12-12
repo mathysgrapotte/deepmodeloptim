@@ -137,6 +137,18 @@
                     "description": "Number of replicates for the tuning.",
                     "default": 1,
                     "help_text": "the number of replicates for the tuning, that is how many times the tuning with the same model is run on the same data."
+                },
+                "optuna_storage": {
+                    "type": "string",
+                    "description": "Optuna storage URL or file path for centralized logging.",
+                    "default": null,
+                    "help_text": "For real-time visualization with optuna-dashboard, provide a database URL (e.g., postgresql://user:pass@host/db, sqlite:///path/to/db) or a file path on shared storage. When set, requires --optuna_study_name. Note: For cluster/cloud, PostgreSQL/MySQL is recommended over SQLite due to file locking limitations."
+                },
+                "optuna_study_name": {
+                    "type": "string",
+                    "description": "Shared Optuna study name (required when optuna_storage is set).",
+                    "default": null,
+                    "help_text": "All parallel tuning tasks will write to this study, enabling cross-task hyperparameter comparison in optuna-dashboard. Example: 'my-tuning-experiment'."
                 }
             }
         },
