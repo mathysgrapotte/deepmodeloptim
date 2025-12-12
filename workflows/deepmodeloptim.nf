@@ -14,6 +14,7 @@ include { SPLIT_DATA_CONFIG_UNIFIED_WF        } from '../subworkflows/local/spli
 include { SPLIT_DATA_WF                       } from '../subworkflows/local/split_data'
 include { TRANSFORM_DATA_WF                   } from '../subworkflows/local/transform_data'
 include { TUNE_WF                             } from '../subworkflows/local/tune'
+include { EVALUATE_WF                         } from '../subworkflows/local/evaluate'
 include { STIMULUS_ENCODE                     } from '../modules/local/stimulus/encode'
 
 //
@@ -140,15 +141,14 @@ workflow DEEPMODELOPTIM {
     )
 
     // ==============================================================================
-    // Evaluation
+    // evaluate model
     // ==============================================================================
 
-    if (!params.skip_encoding) {
-        STIMULUS_ENCODE(
-            prediction_data,
-            ch_yaml_encode_config
-        )
-    }
+    EVALUATE_WF(
+        TUNE_WF.out.model_tmp,
+        ch_transformed_data,
+        ch_yaml_transform_config
+    )
 
     // Software versions collation remains as comments
     softwareVersionsToYAML(ch_versions)
@@ -161,6 +161,8 @@ workflow DEEPMODELOPTIM {
 
     emit:
     versions = ch_versions  // channel: [ path(versions.yml) ]
+    evaluation_metrics = EVALUATE_WF.out.metrics  // channel: [ val(meta), path(metrics.csv) ]
+    combined_metrics = EVALUATE_WF.out.combined_metrics  // channel: [ path(combined_metrics.csv) ]
 
 }
 

@@ -75,7 +75,8 @@ workflow TUNE_WF {
         log.info "    optuna-dashboard ${params.optuna_storage}"
         log.info ""
         log.info "  Then open http://127.0.0.1:8080 in your browser."
-        log.info "  Study name: ${params.optuna_study_name ?: 'auto-generated'}"
+        log.info "  Study name prefix: ${params.optuna_study_name ?: 'auto-generated'}"
+        log.info "  Individual studies will be created for each process combination"
         log.info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         log.info ""
     }
